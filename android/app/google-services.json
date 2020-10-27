@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "681028067036",
+    "firebase_url": "https://menbarc-710ed.firebaseio.com",
+    "project_id": "menbarc-710ed",
+    "storage_bucket": "menbarc-710ed.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:681028067036:android:f02dbfbf7cf25b381a9e19",
+        "android_client_info": {
+          "package_name": "com.cotto.menbarc"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "681028067036-rb9bi69bltrndt09p3mkn08vblu52es6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDcJzOledDpB7dkip3cekk5Jz-7ixpbkSY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "681028067036-rb9bi69bltrndt09p3mkn08vblu52es6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
