@@ -58,7 +58,7 @@ class _HomeDrawerNavigationPageState extends State<HomeDrawerNavigationPage> {
     String packageName = packageInfo.packageName;
     String buildNumber = packageInfo.buildNumber;
 
-    return '''$buildNumber($version)''';
+    return '''$version''';
   }
 
   _HomeDrawerNavigationPageState() {
