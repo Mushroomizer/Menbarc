@@ -1,12 +1,8 @@
-import 'dart:collection';
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:menbarc/tools/constants.dart';
-import 'package:menbarc/tools/functions.dart';
+import 'package:menbarc/widgets/createDrawerBodyItem.dart';
+import 'package:menbarc/widgets/createDrawerHeader.dart';
 import 'package:package_info/package_info.dart';
+import 'fragments/homePage.dart';
 
 void main() {
   runApp(MyApp());
@@ -20,25 +16,7 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  String title = ""; //initialized to this string, so its not empty on start
 
-  Future<String> setTitle() async {
-    PackageInfo packageInfo = await PackageInfo.fromPlatform();
-    String appName = packageInfo.appName;
-    String version = packageInfo.version;
-    String packageName = packageInfo.packageName;
-    String buildNumber = packageInfo.buildNumber;
-
-    return '''Menbarc Design Calculator $buildNumber($version)''';
-  }
-
-  _MyAppState() {
-    setTitle().then((value) {
-      setState(() {
-        title = value;
-      });
-    }); // this is async, so it completes a bit later
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,374 +27,93 @@ class _MyAppState extends State<MyApp> {
         accentColor: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home: MyHomePage(
-        title: title,
-      ),
+      home: HomeDrawerNavigationPage(title:'Menbarc Design Calculator'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class HomeDrawerNavigationPage extends StatefulWidget {
   final String title;
 
+  const HomeDrawerNavigationPage({Key key, this.title}) : super(key: key);
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State createState() {
+    return _HomeDrawerNavigationPageState();
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  double defaultPressure = 6;
-  TextEditingController pressureEditorController;
-  FocusNode pressureEditorFocusNode;
+class _HomeDrawerNavigationPageState extends State<HomeDrawerNavigationPage> {
+  List<PageItem> pages = [
+    PageItem("Home", Icons.home, homePage()),
+  ];
 
-  LinkedHashMap<String, int> _nozzles = new LinkedHashMap<String, int>();
+  int pageIndex = 0;
 
-  void _dialogueResult(String nozzleType) {
-    print('you selected $nozzleType');
-    Navigator.pop(context);
-    _updateNozzleAmount(nozzleType, 1);
+  String version = ""; //initialized to this string, so its not empty on start
+
+  Future<String> getAppVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+    String appName = packageInfo.appName;
+    String version = packageInfo.version;
+    String packageName = packageInfo.packageName;
+    String buildNumber = packageInfo.buildNumber;
+
+    return '''$buildNumber($version)''';
   }
 
-  void _updateNozzleAmount(String nozzleType, int amount) {
-    setState(() {
-      if (_nozzles.containsKey(nozzleType) &&
-          _nozzles[nozzleType] <= 0 &&
-          amount < 0) {
-        _nozzles.remove(nozzleType);
-        return;
-      }
-      _nozzles.update(nozzleType, (v) => v + amount, ifAbsent: () => 1);
-    });
-  }
-
-  void _showAlert() {
-    showDialog(
-        context: context,
-        builder: (_) => new AlertDialog(
-              title: new Text('Add nozzle'),
-              content: _getNozzleTypeOptions(),
-            ));
-  }
-
-  void _addNozzle() {
-    _showAlert();
-  }
-
-  Widget _getNozzleTypeOptions() {
-    List<Widget> widgets = new List<Widget>();
-    for (var nozzleType in getNozzleTypes()) {
-      widgets.add(new FlatButton(
-          onPressed: () {
-            _dialogueResult(nozzleType);
-          },
-          child: new Text("GPM " + nozzleType)));
-    }
-    ListView list = new ListView(
-      children: widgets,
-    );
-    return list;
-  }
-
-  _calculate() {
-    if (_nozzles.isNotEmpty) {
-      String water_consumption = calculateWaterConsumption();
-      showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Water consumption"),
-              content: Text(
-                water_consumption,
-                style: TextStyle(fontSize: 20),
-              ),
-              actions: [
-                FlatButton(
-                    onPressed: () {
-                      Clipboard.setData(ClipboardData(text: water_consumption));
-                      Navigator.of(context).pop();
-                      Fluttertoast.showToast(
-                          msg: "Copied to clipboard",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          textColor: Colors.white,
-                          fontSize: 16.0);
-                    },
-                    child: Text(
-                      "Copy",
-                    )),
-                FlatButton(
-                  child: Text(
-                    "Okay",
-                    style: TextStyle(color: Theme.of(context).accentColor),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ],
-              elevation: 5,
-            );
-          });
-    } else {
-      Fluttertoast.showToast(
-          msg: "Add a nozzle first",
-          toastLength: Toast.LENGTH_SHORT,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Theme.of(context).errorColor,
-          textColor: Colors.white,
-          fontSize: 16.0);
-    }
-  }
-
-  // Formula:
-  // Q2 = (Q1/(P1/P2))*60
-  // Where …
-  // Q1 = see below constants
-  // Q2 = Answer in Liters/Hr
-  // P1 = 3Pwr
-  // P2 = (Selected pressure)Pwr
-  //
-  // Constants:
-  // Pwr = 0.5 (to the power of)
-  String calculateWaterConsumption() {
-    pressureEditorController.text = pressureEditorController.text;
-    double consumption = 0;
-
-    for (var nozzleType in _nozzles.keys) {
-      int amount = _nozzles[nozzleType];
-      if (amount <= 0) continue;
-      double Q2, Q1, P1, P2;
-      Q1 = getNozzleFlowPerMinuteAt3Bar(nozzleType);
-      P1 = pow(3, 0.5);
-      P2 = pow(double.parse(pressureEditorController.text), 0.5);
-      Q2 = (Q1 / (P1 / P2)) * amount;
-      print("Nozzle: " + nozzleType + " flow per hour: " + Q2.toString());
-      consumption += Q2;
-    }
-
-    consumption *= 60;
-    // if (consumption.toString().contains(".")){
-    //   consumption = double.parse(consumption.toStringAsFixed(2));
-    // }
-    print("consumption: " + consumption.toString());
-
-    pressureEditorFocusNode.unfocus();
-    return '''${consumption.truncate().toString()} Lt/Hr''';
+  _HomeDrawerNavigationPageState() {
+    getAppVersion().then((value) {
+      setState(() {
+        version = value;
+      });
+    }); // this is async, so it completes a bit later
   }
 
   @override
   Widget build(BuildContext context) {
-    if (pressureEditorController == null)
-      pressureEditorController =
-          TextEditingController(text: defaultPressure.toString());
-    if (pressureEditorFocusNode == null) {
-      pressureEditorFocusNode = FocusNode();
-      pressureEditorFocusNode.addListener(() {
-        if (pressureEditorFocusNode.hasFocus) {
-          pressureEditorController.clear();
-        } else {
-          if (pressureEditorController.text.isEmpty) {
-            pressureEditorController.text = defaultPressure.toString();
+
+    return new Scaffold(
+        appBar: AppBar(
+          title: Text(pages[pageIndex].title),
+        ),
+        drawer: navigationDrawer(),
+        body: Center(child: pages[pageIndex].widget));
+  }
+
+  Widget navigationDrawer() {
+    List<Widget> drawerBodyItems = [];
+    drawerBodyItems.add(createDrawerHeader(widget.title));
+    for (int i = 0; i < pages.length; i++) {
+      PageItem pageItem = pages[i];
+      drawerBodyItems.add(createDrawerBodyItem(
+          icon: pageItem.nav_icon,
+          text: pageItem.title,
+          onTap: () {
+            setState(() {
+              pageIndex = i;
+            });
+            Navigator.pop(context);
           }
-        }
-      });
-    }
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    "Pressure: ",
-                    style: TextStyle(
-                      fontSize: 20,
-                    ),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      focusNode: pressureEditorFocusNode,
-                      controller: pressureEditorController,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20),
-                      onSubmitted: (s) {
-                        try {
-                          calculateWaterConsumption();
-                        } catch (e, stacktrace) {
-                          debugPrint(stacktrace.toString());
-                          pressureEditorController.clear();
-                        }
-                      },
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                          hintText: "Pressure at manifold",
-                          border: OutlineInputBorder()),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                children: getNozzleListItems(),
-              ),
-            ),
-            FlatButton(
-                height: 50,
-                minWidth: double.infinity,
-                onPressed: _calculate,
-                color: Theme.of(context).accentColor,
-                child: Text(
-                  "Calculate",
-                  style: TextStyle(color: Colors.white),
-                )),
-          ],
-        ),
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 0, 0, 0),
-        child: FloatingActionButton(
-          backgroundColor: Theme.of(context).primaryColor,
-          onPressed: _addNozzle,
-          tooltip: 'Add Nozzle',
-          child: Icon(Icons.add),
-        ),
-      ),
-    );
-  }
-
-  List<Widget> getNozzleListItems() {
-    List<Widget> widgets = new List<Widget>();
-    for (var nozzleType in _nozzles.keys) {
-      widgets.add(createNozzleListItemWidget(nozzleType, _nozzles[nozzleType]));
-    }
-    if (widgets.isEmpty)
-      widgets.add(Container(
-        child: Padding(
-          padding: const EdgeInsets.all(18.0),
-          child: RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              style: Theme.of(context).textTheme.bodyText1,
-              children: [
-                TextSpan(text: 'Press '),
-                WidgetSpan(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Icon(Icons.add),
-                  ),
-                ),
-                TextSpan(text: ' to add a nozzle'),
-              ],
-            ),
-          ),
-        ),
       ));
-
-    widgets.add(Padding(
-      padding: const EdgeInsets.fromLTRB(0, 50, 0, 0),
-    ));
-
-    return widgets;
-  }
-
-  Widget customRoundedButton(Icon icon, Function onpressed,
-      {Color fillcolor = Colors.white}) {
-    return RawMaterialButton(
-      elevation: 2.0,
-      fillColor: fillcolor,
-      child: icon,
-      padding: EdgeInsets.all(5.0),
-      shape: CircleBorder(),
-      onPressed: onpressed,
-    );
-  }
-
-  Widget createNozzleListItemWidget(String nozzleType, int amount) {
-    Text textWidget = Text(
-      "Amount: " + amount.toString(),
-    );
-    if (amount <= 0) {
-      textWidget = Text(
-        "Amount: " + amount.toString(),
-        style: TextStyle(color: Colors.red),
-      );
     }
-    return Dismissible(
-      key: Key(nozzleType),
-      background: Container(
-        width: double.infinity,
-        height: double.infinity,
-        color: Colors.red,
-        alignment: Alignment.center,
-        child: Text(
-          "Delete",
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 22, color: Colors.white),
-        ),
-      ),
-      onDismissed: (direction) {
-        // Remove the item from the data source.
-        Fluttertoast.showToast(
-          msg: _nozzles[nozzleType].toString() +
-              " GPM " +
-              nozzleType +
-              " removed",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.blueGrey,
-          textColor: Colors.white,
-          fontSize: 14.0,
-        );
-        setState(() {
-          _nozzles.remove(nozzleType);
-        });
-      },
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            flex: 3,
-            child: Text(
-              "GPM " + nozzleType,
-              textAlign: TextAlign.center,
-            ),
-          ),
-          Expanded(
-            flex: 7,
-            child: Row(
-              children: <Widget>[
-                customRoundedButton(
-                    Icon(
-                      Icons.remove,
-                      color: Colors.red,
-                      size: 15.0,
-                    ), () {
-                  _updateNozzleAmount(nozzleType, -1);
-                }),
-                textWidget,
-                customRoundedButton(
-                    Icon(
-                      Icons.add,
-                      color: Colors.green,
-                      size: 15.0,
-                    ), () {
-                  _updateNozzleAmount(nozzleType, 1);
-                }),
-              ],
-            ),
-          ),
-        ],
+    drawerBodyItems.add(ListTile(
+      title: Text('App version '+version),
+      onTap: () {},
+    ));
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: drawerBodyItems,
       ),
     );
   }
 }
+
+class PageItem {
+  String title;
+  IconData nav_icon;
+  Widget widget;
+
+  PageItem(this.title, this.nav_icon, this.widget);
+}
+
