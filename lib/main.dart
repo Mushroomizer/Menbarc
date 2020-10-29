@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:menbarc/fragments/dosingRatesPage.dart';
 import 'package:menbarc/widgets/createDrawerBodyItem.dart';
 import 'package:menbarc/widgets/createDrawerHeader.dart';
 import 'package:package_info/package_info.dart';
@@ -45,6 +46,7 @@ class HomeDrawerNavigationPage extends StatefulWidget {
 class _HomeDrawerNavigationPageState extends State<HomeDrawerNavigationPage> {
   List<PageItem> pages = [
     PageItem("Home", Icons.home, homePage()),
+    PageItem("Dosing Rates", Icons.ballot_outlined, dosingRatesPage()),
   ];
 
   int pageIndex = 0;

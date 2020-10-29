@@ -1,4 +1,3 @@
-
 import 'dart:collection';
 import 'dart:math';
 
@@ -8,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:menbarc/tools/constants.dart';
 import 'package:menbarc/tools/functions.dart';
+import 'package:menbarc/widgets/customRoundedButton.dart';
 
 class homePage extends StatefulWidget {
   homePage({Key key, this.title}) : super(key: key);
@@ -46,9 +46,9 @@ class _homePageState extends State<homePage> {
     showDialog(
         context: context,
         builder: (_) => new AlertDialog(
-          title: new Text('Add nozzle'),
-          content: _getNozzleTypeOptions(),
-        ));
+              title: new Text('Add nozzle'),
+              content: _getNozzleTypeOptions(),
+            ));
   }
 
   void _addNozzle() {
@@ -178,7 +178,6 @@ class _homePageState extends State<homePage> {
       });
     }
     return Scaffold(
-
       body: Center(
         child: Column(
           children: [
@@ -247,6 +246,41 @@ class _homePageState extends State<homePage> {
 
   List<Widget> getNozzleListItems() {
     List<Widget> widgets = new List<Widget>();
+    if (_nozzles.isNotEmpty) {
+      widgets.add(FlatButton(
+          height: 50,
+          minWidth: double.infinity,
+          onPressed: () {
+            showDialog(
+                context: context,
+                builder: (_) => new AlertDialog(
+                      title: new Text('Are you sure?'),
+                      content: new Text(
+                        "This action will remove all nozzles from the list",
+                      ),
+                      actions: <Widget>[
+                        new FlatButton(
+                            onPressed: () {
+                              setState(() {
+                                _nozzles.clear();
+                                Navigator.pop(context);
+                              });
+                            },
+                            child: new Text('yes', style: TextStyle(color: Theme.of(context).primaryColor),)),
+                        new FlatButton(
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                            child: new Text('no', style: TextStyle(color: Theme.of(context).errorColor),)),
+                      ],
+                    ));
+          },
+          color: Theme.of(context).errorColor,
+          child: Text(
+            "Clear",
+            style: TextStyle(color: Colors.white),
+          )));
+    }
     for (var nozzleType in _nozzles.keys) {
       widgets.add(createNozzleListItemWidget(nozzleType, _nozzles[nozzleType]));
     }
@@ -278,18 +312,6 @@ class _homePageState extends State<homePage> {
     ));
 
     return widgets;
-  }
-
-  Widget customRoundedButton(Icon icon, Function onpressed,
-      {Color fillcolor = Colors.white}) {
-    return RawMaterialButton(
-      elevation: 2.0,
-      fillColor: fillcolor,
-      child: icon,
-      padding: EdgeInsets.all(5.0),
-      shape: CircleBorder(),
-      onPressed: onpressed,
-    );
   }
 
   Widget createNozzleListItemWidget(String nozzleType, int amount) {
