@@ -293,7 +293,8 @@ class _flowCalculatorPageState extends State<flowCalculatorPage> {
       widgets.add(Container(
         child: Padding(
           padding: const EdgeInsets.all(18.0),
-          child: RichText(
+          child: TextButton(onPressed: _addNozzle,
+            child: RichText(
             textAlign: TextAlign.center,
             text: TextSpan(
               style: Theme.of(context).textTheme.bodyText1,
@@ -302,13 +303,13 @@ class _flowCalculatorPageState extends State<flowCalculatorPage> {
                 WidgetSpan(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Icon(Icons.add),
+                    child: Icon(Icons.add,color: Colors.black,),
                   ),
                 ),
                 TextSpan(text: ' to add a nozzle'),
               ],
             ),
-          ),
+          ),),
         ),
       ));
 
