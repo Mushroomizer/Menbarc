@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:menbarc/widgets/customRoundedButton.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 
 class dosingRatesPage extends StatefulWidget {
   @override
@@ -11,10 +11,10 @@ class dosingRatesPage extends StatefulWidget {
   }
 }
 
-enum Pump { BM515, BM210 }
+enum Chemical { BM515, BM210 }
 
 class _dosingRatesPageState extends State<dosingRatesPage> {
-  Pump _pump = Pump.BM515;
+  Chemical _chemical = Chemical.BM515;
 
   TextEditingController oreDeliveryEditorController;
   FocusNode oreDeliveryEditorEditorFocusNode;
@@ -41,11 +41,11 @@ class _dosingRatesPageState extends State<dosingRatesPage> {
       oreDeliveryEditorEditorFocusNode.unfocus();
       String dosing_rate = "";
       double oreDeliveryRate = double.parse(oreDeliveryEditorController.text);
-      switch (_pump) {
-        case Pump.BM515:
+      switch (_chemical) {
+        case Chemical.BM515:
           dosing_rate = calculateDosingRate(oreDeliveryRate, 0.06).toString();
           break;
-        case Pump.BM210:
+        case Chemical.BM210:
           dosing_rate = calculateDosingRate(oreDeliveryRate, 0.01).toString();
           break;
         default:
@@ -72,8 +72,12 @@ class _dosingRatesPageState extends State<dosingRatesPage> {
               actions: [
                 FlatButton(
                     onPressed: () {
+
+                      String clipboardText = "Chemical: "+EnumToString.convertToString(_chemical)+"\n";
+                      clipboardText+= "Ore: "+oreDeliveryRate.toString()+" Tons/Hour\n";
+                      clipboardText+= "Dosing rate: "+dosing_rate+" ml/min";
                       Clipboard.setData(
-                          ClipboardData(text: dosing_rate + " ml/min"));
+                          ClipboardData(text: clipboardText));
                       Navigator.of(context).pop();
                       Fluttertoast.showToast(
                           msg: "Copied to clipboard",
@@ -123,23 +127,23 @@ class _dosingRatesPageState extends State<dosingRatesPage> {
               children: [
                 Column(
                   children: [
-                    RadioListTile<Pump>(
+                    RadioListTile<Chemical>(
                       title: const Text('BM515'),
-                      value: Pump.BM515,
-                      groupValue: _pump,
-                      onChanged: (Pump value) {
+                      value: Chemical.BM515,
+                      groupValue: _chemical,
+                      onChanged: (Chemical value) {
                         setState(() {
-                          _pump = value;
+                          _chemical = value;
                         });
                       },
                     ),
-                    RadioListTile<Pump>(
+                    RadioListTile<Chemical>(
                       title: const Text('BM210'),
-                      value: Pump.BM210,
-                      groupValue: _pump,
-                      onChanged: (Pump value) {
+                      value: Chemical.BM210,
+                      groupValue: _chemical,
+                      onChanged: (Chemical value) {
                         setState(() {
-                          _pump = value;
+                          _chemical = value;
                         });
                       },
                     ),

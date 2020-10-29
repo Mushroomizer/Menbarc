@@ -3,7 +3,7 @@ import 'package:menbarc/fragments/dosingRatesPage.dart';
 import 'package:menbarc/widgets/createDrawerBodyItem.dart';
 import 'package:menbarc/widgets/createDrawerHeader.dart';
 import 'package:package_info/package_info.dart';
-import 'fragments/homePage.dart';
+import 'fragments/flowCalculatorPage.dart';
 
 void main() {
   runApp(MyApp());
@@ -45,7 +45,7 @@ class HomeDrawerNavigationPage extends StatefulWidget {
 
 class _HomeDrawerNavigationPageState extends State<HomeDrawerNavigationPage> {
   List<PageItem> pages = [
-    PageItem("Home", Icons.home, homePage()),
+    PageItem("Flow Calculator", Icons.account_tree_outlined, flowCalculatorPage()),
     PageItem("Dosing Rates", Icons.ballot_outlined, dosingRatesPage()),
   ];
 

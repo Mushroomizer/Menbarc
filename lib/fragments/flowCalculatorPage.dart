@@ -9,15 +9,15 @@ import 'package:menbarc/tools/constants.dart';
 import 'package:menbarc/tools/functions.dart';
 import 'package:menbarc/widgets/customRoundedButton.dart';
 
-class homePage extends StatefulWidget {
-  homePage({Key key, this.title}) : super(key: key);
+class flowCalculatorPage extends StatefulWidget {
+  flowCalculatorPage({Key key, this.title}) : super(key: key);
   final String title;
 
   @override
-  _homePageState createState() => _homePageState();
+  _flowCalculatorPageState createState() => _flowCalculatorPageState();
 }
 
-class _homePageState extends State<homePage> {
+class _flowCalculatorPageState extends State<flowCalculatorPage> {
   double defaultPressure = 6;
   TextEditingController pressureEditorController;
   FocusNode pressureEditorFocusNode;
@@ -85,7 +85,13 @@ class _homePageState extends State<homePage> {
               actions: [
                 FlatButton(
                     onPressed: () {
-                      Clipboard.setData(ClipboardData(text: water_consumption));
+                      String clipboardText = "Water consumption: "+water_consumption+"\n";
+                      clipboardText+= "Pressure: "+pressureEditorController.text+" Bar\n";
+                      clipboardText+= "Nozzles: \n";
+                      for (var nozzleType in _nozzles.keys){
+                        clipboardText+= '''GPM $nozzleType (x ${_nozzles[nozzleType]})\n''';
+                      }
+                      Clipboard.setData(ClipboardData(text: clipboardText));
                       Navigator.of(context).pop();
                       Fluttertoast.showToast(
                           msg: "Copied to clipboard",
@@ -135,7 +141,6 @@ class _homePageState extends State<homePage> {
   // Constants:
   // Pwr = 0.5 (to the power of)
   String calculateWaterConsumption() {
-    pressureEditorController.text = pressureEditorController.text;
     double consumption = 0;
 
     for (var nozzleType in _nozzles.keys) {
