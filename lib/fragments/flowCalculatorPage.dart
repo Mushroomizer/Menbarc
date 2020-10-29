@@ -8,6 +8,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:menbarc/tools/constants.dart';
 import 'package:menbarc/tools/functions.dart';
 import 'package:menbarc/widgets/customRoundedButton.dart';
+import 'package:menbarc/widgets/shareButton.dart';
+import 'package:share/share.dart';
 
 class flowCalculatorPage extends StatefulWidget {
   flowCalculatorPage({Key key, this.title}) : super(key: key);
@@ -70,9 +72,19 @@ class _flowCalculatorPageState extends State<flowCalculatorPage> {
     return list;
   }
 
+
+
   _calculate() {
     if (_nozzles.isNotEmpty) {
       String water_consumption = calculateWaterConsumption();
+
+      String clipboardText = "Water consumption: " + water_consumption + "\n";
+      clipboardText += "Pressure: " + pressureEditorController.text + " Bar\n";
+      clipboardText += "Nozzles: \n";
+      for (var nozzleType in _nozzles.keys) {
+        clipboardText += '''GPM $nozzleType (x ${_nozzles[nozzleType]})\n''';
+      }
+
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -83,28 +95,7 @@ class _flowCalculatorPageState extends State<flowCalculatorPage> {
                 style: TextStyle(fontSize: 20),
               ),
               actions: [
-                FlatButton(
-                    onPressed: () {
-                      String clipboardText = "Water consumption: "+water_consumption+"\n";
-                      clipboardText+= "Pressure: "+pressureEditorController.text+" Bar\n";
-                      clipboardText+= "Nozzles: \n";
-                      for (var nozzleType in _nozzles.keys){
-                        clipboardText+= '''GPM $nozzleType (x ${_nozzles[nozzleType]})\n''';
-                      }
-                      Clipboard.setData(ClipboardData(text: clipboardText));
-                      Navigator.of(context).pop();
-                      Fluttertoast.showToast(
-                          msg: "Copied to clipboard",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          textColor: Colors.white,
-                          fontSize: 16.0);
-                    },
-                    child: Text(
-                      "Copy",
-                    )),
+                ShareButton(context, clipboardText),
                 FlatButton(
                   child: Text(
                     "Okay",
@@ -271,12 +262,20 @@ class _flowCalculatorPageState extends State<flowCalculatorPage> {
                                 Navigator.pop(context);
                               });
                             },
-                            child: new Text('yes', style: TextStyle(color: Theme.of(context).primaryColor),)),
+                            child: new Text(
+                              'yes',
+                              style: TextStyle(
+                                  color: Theme.of(context).primaryColor),
+                            )),
                         new FlatButton(
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: new Text('no', style: TextStyle(color: Theme.of(context).errorColor),)),
+                            child: new Text(
+                              'no',
+                              style: TextStyle(
+                                  color: Theme.of(context).errorColor),
+                            )),
                       ],
                     ));
           },
@@ -293,23 +292,28 @@ class _flowCalculatorPageState extends State<flowCalculatorPage> {
       widgets.add(Container(
         child: Padding(
           padding: const EdgeInsets.all(18.0),
-          child: TextButton(onPressed: _addNozzle,
+          child: TextButton(
+            onPressed: _addNozzle,
             child: RichText(
-            textAlign: TextAlign.center,
-            text: TextSpan(
-              style: Theme.of(context).textTheme.bodyText1,
-              children: [
-                TextSpan(text: 'Press '),
-                WidgetSpan(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Icon(Icons.add,color: Colors.black,),
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: Theme.of(context).textTheme.bodyText1,
+                children: [
+                  TextSpan(text: 'Press '),
+                  WidgetSpan(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 0),
+                      child: Icon(
+                        Icons.add,
+                        color: Colors.black,
+                      ),
+                    ),
                   ),
-                ),
-                TextSpan(text: ' to add a nozzle'),
-              ],
+                  TextSpan(text: ' to add a nozzle'),
+                ],
+              ),
             ),
-          ),),
+          ),
         ),
       ));
 

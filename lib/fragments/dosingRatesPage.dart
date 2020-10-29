@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:enum_to_string/enum_to_string.dart';
+import 'package:menbarc/widgets/shareButton.dart';
 
 class dosingRatesPage extends StatefulWidget {
   @override
@@ -60,6 +61,10 @@ class _dosingRatesPageState extends State<dosingRatesPage> {
           return;
       }
 
+      String clipboardText = "Chemical: "+EnumToString.convertToString(_chemical)+"\n";
+      clipboardText+= "Ore: "+oreDeliveryRate.truncate().toString()+" Tons/Hour\n";
+      clipboardText+= "Dosing rate: "+dosing_rate+" ml/min";
+
       showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -70,27 +75,7 @@ class _dosingRatesPageState extends State<dosingRatesPage> {
                 style: TextStyle(fontSize: 20),
               ),
               actions: [
-                FlatButton(
-                    onPressed: () {
-
-                      String clipboardText = "Chemical: "+EnumToString.convertToString(_chemical)+"\n";
-                      clipboardText+= "Ore: "+oreDeliveryRate.toString()+" Tons/Hour\n";
-                      clipboardText+= "Dosing rate: "+dosing_rate+" ml/min";
-                      Clipboard.setData(
-                          ClipboardData(text: clipboardText));
-                      Navigator.of(context).pop();
-                      Fluttertoast.showToast(
-                          msg: "Copied to clipboard",
-                          toastLength: Toast.LENGTH_SHORT,
-                          gravity: ToastGravity.BOTTOM,
-                          timeInSecForIosWeb: 1,
-                          backgroundColor: Theme.of(context).primaryColor,
-                          textColor: Colors.white,
-                          fontSize: 16.0);
-                    },
-                    child: Text(
-                      "Copy",
-                    )),
+                ShareButton(context, clipboardText),
                 FlatButton(
                   child: Text(
                     "Okay",
